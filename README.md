@@ -63,7 +63,8 @@ Key sections include:
 
 ## Screenshots / Demo
 
-*COMING SOON*
+**Monthly Compliance Report**
+![SMX Monthly Compliance Report](docs/screenshots/monthly-compliance-report.png)
 
 ## For Church Admins / End Users
 
