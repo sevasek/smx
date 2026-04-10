@@ -117,9 +117,8 @@ For licensing, adaptation, or deployment in another church, please contact the a
 ## Contact
 
 **Paul**
-
-X: [@sevasek](https://x.com/sevasek)
-Email: (available upon serious inquiry)
+- X: [@sevasek](https://x.com/sevasek)
+- Email: (available upon serious inquiry)
 
 ---
 
