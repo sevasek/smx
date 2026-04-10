@@ -63,8 +63,17 @@ Key sections include:
 
 ## Screenshots / Demo
 
-**Monthly Compliance Report**
-![SMX Monthly Compliance Report](docs/screenshots/monthly-compliance-report.png)
+**Monthly Compliance Report - Compliant**
+![SMX Monthly Compliance Report email](docs/screenshots/monthly-compliance-report.png)
+
+**Monthly Compliance Report - Not Compliant**
+![SMX Monthly Compliance Report email](docs/screenshots/monthly-compliance-report-not.png)
+
+**Weekly Compliance Issue Report**
+![SMX Weekly Compliance Issue Report email](docs/screenshots/weekly-compliance-issues-report.png)
+
+**Weekly Missing Grade Follow-up Report**
+![SMX Weekly Missing Grade Follow-up Report email](docs/screenshots/weekly-missing-grade-report.png)
 
 ## For Church Admins / End Users
 
