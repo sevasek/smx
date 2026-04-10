@@ -75,6 +75,26 @@ Key sections include:
 **Weekly Missing Grade Follow-up Report**
 ![SMX Weekly Missing Grade Follow-up Report email](docs/screenshots/weekly-missing-grade-report.png)
 
+<div align="center">
+
+<img src="docs/screenshots/monthly-compliance-report.png" 
+     alt="Monthly Compliance Report - All Clear" 
+     width="48%" />
+<img src="docs/screenshots/monthly-compliance-report-not.png" 
+     alt="Monthly Compliance Report - Issues Detected" 
+     width="48%" />
+
+<img src="docs/screenshots/weekly-compliance-issues-report.png" 
+     alt="Weekly Compliance Issue Report" 
+     width="48%" />
+<img src="docs/screenshots/weekly-missing-grade-report.png" 
+     alt="Weekly Missing Grade Follow-up Report" 
+     width="48%" />
+
+</div>
+
+<p align="center"><em>Automated email reports showing compliant vs non-compliant states and follow-up actions.</em></p>
+
 ## For Church Admins / End Users
 
 1. Ensure attendance and check-in data is entered accurately in Elvanto and Adminosaur.
