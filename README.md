@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-Proprietary-blue.svg)
 ![n8n](https://img.shields.io/badge/automation-n8n-FF6A00.svg)
 ![Docker](https://img.shields.io/badge/containerized-Docker-2496ED.svg)
-![Ubuntu](https://img.shields.io/badge/OS-Ubuntu- E95420.svg)
+![Ubuntu](https://img.shields.io/badge/OS-Ubuntu-E95420.svg)
 
 ## About
 
@@ -106,9 +106,11 @@ For licensing, adaptation, or deployment in another church, please contact the a
 
 ## Contact
 
-**Paul**  
+**Paul**
+
 X: [@sevasek](https://x.com/sevasek)
 Email: (available upon serious inquiry)
+
 ---
 
 Built with care to help churches serve safely and efficiently.
