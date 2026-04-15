@@ -9,7 +9,7 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 
 ## About
-SMX is a custom n8n automation system that connects Elvanto, Adminosaur, and ClickSend to deliver real-time Safe Ministry compliance monitoring and reporting for churches. It runs 24/7 on a self-hosted Hostinger VPS.
+SMX is a custom n8n automation system that connects Elvanto, Adminosaur, and ClickSend to deliver real-time Safe Ministry compliance monitoring and reporting for churches. It runs 24/7 on a self-hosted VPS.
 
 ## Value Add
 - **Eliminates administrative burden** on volunteer ministry teams by fully automating Safe Ministry compliance checks, reporting, and notifications — freeing them to focus on pastoral care rather than paperwork.
@@ -27,9 +27,9 @@ SMX is a custom n8n automation system that connects Elvanto, Adminosaur, and Cli
 ## Tech Stack
 - **Automation**: n8n (main + sub-workflows)
 - **Scraping**: Playwright (headless browser)
-- **Hosting**: Hostinger VPS (Ubuntu 24.04)
+- **Hosting**: VPS (Ubuntu 24.04)
 - **Containerisation**: Docker + Docker Compose + Traefik
-- **Integrations**: ClickSend SMS, Hostinger SMTP
+- **Integrations**: ClickSend SMS, SMTP
 
 ## Project Status
 This repository contains **documentation and screenshots only**. Full workflow exports and Docker setup are not public for security and IP reasons.
