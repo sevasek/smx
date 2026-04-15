@@ -1,0 +1,274 @@
+{
+  "name": "SMX_Main_Switchboard",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sms",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "6e67248e-350f-457e-a544-d4d7b54179be",
+      "name": "Webhook",
+      "webhookId": "52333461-cb79-4fa5-b415-45ab1076e797"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body }}",
+                    "rightValue": "roll",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "id": "28a9f1ae-d01f-43cd-b19b-8225573c742e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Roll"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c43390f5-9008-463d-b1cf-ea3e2a79bdff",
+                    "leftValue": "",
+                    "rightValue": "evac",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Evacuation"
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ],
+      "id": "1e357da6-6f8f-4555-a533-945d7ac90c1b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e546bb44-05b7-459a-bf77-4245f63abd50",
+              "leftValue": "={{ $json.raw_payload_user_id }}",
+              "rightValue": "659510",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        0
+      ],
+      "id": "16805264-2980-4a87-82d0-b101054c264a",
+      "name": "Through ClickSend?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "XzVeivaeqxQRxcCX",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/XzVeivaeqxQRxcCX",
+          "cachedResultName": "SMX_Sub_RollNotification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        -208
+      ],
+      "id": "d82049c0-e7c9-44df-85e2-d5e87fe0d57a",
+      "name": "Send roll to the team member"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QYeXRTN0egqqYNhI",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QYeXRTN0egqqYNhI",
+          "cachedResultName": "SMX_Sub_EvacNotification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        144
+      ],
+      "id": "5a53ad85-ef23-4c91-bc6a-477ca20b21c5",
+      "name": "Send evac roll to all team members"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "R7uOvbhtnKZKUHEw",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        0
+      ],
+      "name": "Call SMX_Sub_DecryptParseSMS",
+      "id": "2a619dda-6d3f-4cf5-8147-ea00ab624728"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call SMX_Sub_DecryptParseSMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send roll to the team member",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send evac roll to all team members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Through ClickSend?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call SMX_Sub_DecryptParseSMS": {
+      "main": [
+        [
+          {
+            "node": "Through ClickSend?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedPerExecution": 2
+  },
+  "versionId": "0c68213d-8776-4d82-a99a-a3bc644b0dbf",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "t77YIDl8FEryFB0O",
+  "tags": []
+}

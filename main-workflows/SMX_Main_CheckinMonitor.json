@@ -1,0 +1,121 @@
+{
+  "name": "SMX_Main_CheckinMonitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/5 10-11 * * 0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1376,
+        384
+      ],
+      "id": "61997927-ec39-4b3e-9d68-df535e47e58c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OT9aDjK4zEXKw54I",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OT9aDjK4zEXKw54I",
+          "cachedResultName": "SMX_Sub_ProcessAdminosaur"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1152,
+        384
+      ],
+      "id": "33cc892e-95bb-4d88-a878-789dc6bf29db",
+      "name": "Process Adminosaur"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pPMoJYbf4kTUUI11",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pPMoJYbf4kTUUI11",
+          "cachedResultName": "SMX_Sub_CheckinNotification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -944,
+        384
+      ],
+      "id": "5029a119-2c57-4846-bcb7-35f724f1d520",
+      "name": "Generate & Send Checkin Notification"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Adminosaur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Adminosaur": {
+      "main": [
+        [
+          {
+            "node": "Generate & Send Checkin Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "1ZnIFugZb5uzLLtC",
+    "timeSavedPerExecution": 10
+  },
+  "versionId": "e6c51e82-3143-4af4-8a4f-ab4237ca7e45",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "F0peUbpwnxgE1PnG",
+  "tags": []
+}

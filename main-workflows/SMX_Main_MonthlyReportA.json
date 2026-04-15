@@ -1,0 +1,267 @@
+{
+  "name": "SMX_Main_MonthlyReportA",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Report on Last Month\nTriggers ASAP after the 3rd day of each month.",
+        "height": 896,
+        "width": 416,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "35ae5376-1843-44a3-b531-8185b5ce9a1f",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node — Filter to Previous Calendar Month (string dates)\n// Input: your full canonical dataset (date field is string \"YYYY-MM-DD\")\n// Output: only records from last calendar month\n\nconst now = new Date();\nconst currentYear = now.getFullYear();\nconst currentMonth = now.getMonth(); // 0-based (11 = Dec)\n\n// Calculate previous month and year\nlet prevYear = currentYear;\nlet prevMonth = currentMonth - 1;\nif (prevMonth < 0) {\n  prevMonth = 11;     // December of previous year\n  prevYear -= 1;\n}\n\n// Format as \"YYYY-MM\" string (e.g. \"2025-11\")\nconst prevMonthStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;\n\nreturn items.filter(item => {\n  const dateStr = item.json.date;\n  if (!dateStr || typeof dateStr !== 'string') return false;\n  // Check if date starts with \"YYYY-MM\" of previous month\n  return dateStr.startsWith(prevMonthStr);\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        80
+      ],
+      "id": "40001d65-c079-42b8-9daf-49a9d5a49468",
+      "name": "Filter Last Month"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "7BPEF4jdzxSERztg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/7BPEF4jdzxSERztg",
+          "cachedResultName": "SMX_Sub_ProcessCompliance"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        80
+      ],
+      "id": "e4ba4231-8169-4bc4-9aa7-a03906b60c92",
+      "name": "Check Monthly Compliance"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wYyQVQQhnQdJaLmw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wYyQVQQhnQdJaLmw",
+          "cachedResultName": "SMX_Sub_OverviewReport"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        320
+      ],
+      "id": "50bc0320-c1bb-4cd7-9e6f-4ace2beeaac8",
+      "name": "Generate & Send Monthly Overview Report"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 3,
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1168,
+        80
+      ],
+      "id": "ccd0aafa-c552-4eaf-b9da-af5d4ab22bae",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "0vOcycxKjusXxtuE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/0vOcycxKjusXxtuE",
+          "cachedResultName": "SMX_Sub_MissingGradeReport"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        544
+      ],
+      "id": "ac737a81-ae46-482e-829a-63b4d24ca638",
+      "name": "Generate & Send Missing Grade Report"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "dpaGQL3U6VbCjs2o",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/dpaGQL3U6VbCjs2o",
+          "cachedResultName": "SMX_Sub_IssueReports"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        80
+      ],
+      "id": "ec3b2aea-7ee8-4a6a-b942-cdc45635bac5",
+      "name": "Generate & Send Issues Reports"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SPBeAoaG0Vsspsqi",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/SPBeAoaG0Vsspsqi",
+          "cachedResultName": "SMX_Sub_ProcessData"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        80
+      ],
+      "id": "7504b6cf-023e-4d6e-99a4-036247977cb5",
+      "name": "Process Data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Filter Last Month": {
+      "main": [
+        [
+          {
+            "node": "Check Monthly Compliance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate & Send Missing Grade Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Monthly Compliance": {
+      "main": [
+        [
+          {
+            "node": "Generate & Send Monthly Overview Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate & Send Issues Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Data": {
+      "main": [
+        [
+          {
+            "node": "Filter Last Month",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "1ZnIFugZb5uzLLtC",
+    "timeSavedPerExecution": 120
+  },
+  "versionId": "958e6cef-ab84-4f42-80ff-fe30f4d0ab47",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "7aDaJZIWMXw3jHe7",
+  "tags": []
+}

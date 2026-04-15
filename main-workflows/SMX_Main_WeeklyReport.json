@@ -1,0 +1,203 @@
+{
+  "name": "SMX_Main_WeeklyReport",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Weekly Reports\n## Issues\nOne email per room per event where one or more compliance measures failed.",
+        "height": 432,
+        "width": 768,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "e108a046-0fb2-48fa-a99c-53a4476069f2",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "dpaGQL3U6VbCjs2o",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/dpaGQL3U6VbCjs2o",
+          "cachedResultName": "SMX_Sub_IssueReports"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        400
+      ],
+      "id": "fca144ca-93c1-46be-ac46-5581d30c533c",
+      "name": "Generate & Send Weekly Issue Reports"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "7BPEF4jdzxSERztg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/7BPEF4jdzxSERztg",
+          "cachedResultName": "SMX_Sub_ProcessCompliance"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        400
+      ],
+      "id": "4548238f-eba1-4d5f-adb0-7146359662ab",
+      "name": "Check Weekly Compliance"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                5
+              ],
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        400
+      ],
+      "id": "469fe246-d5fa-402b-a355-49d239bec014",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node — Filter to Last 7 Days (strictly past & present, no future dates)\n// Input: items with .json.date as \"YYYY-MM-DD\"\n// Output: only the last 7 calendar days, never includes future dates\n\nconst today = new Date();\ntoday.setHours(0, 0, 0, 0);                    // start of today\nconst sevenDaysAgo = new Date(today);\nsevenDaysAgo.setDate(today.getDate() - 7);    // 7 days ago, same time\n\nconst todayStr = today.toISOString().split('T')[0];           // \"2025-12-03\"\nconst sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]; // \"2025-11-26\"\n\nreturn items.filter(item => {\n  const dateStr = item.json.date;\n  \n  // Must be a valid string date\n  if (!dateStr || typeof dateStr !== 'string') return false;\n  \n  // Must be >= 7 days ago AND <= today (blocks any future dates)\n  return dateStr >= sevenDaysAgoStr && dateStr <= todayStr;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        400
+      ],
+      "id": "e5d2c7ea-a596-4be9-a282-69179d56636b",
+      "name": "Filter After 7 Days Ago"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SPBeAoaG0Vsspsqi",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/SPBeAoaG0Vsspsqi",
+          "cachedResultName": "SMX_Sub_ProcessData"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        400
+      ],
+      "id": "1a8852ae-4d5e-4ca6-9ec4-86cf43387e00",
+      "name": "Process Data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check Weekly Compliance": {
+      "main": [
+        [
+          {
+            "node": "Generate & Send Weekly Issue Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter After 7 Days Ago": {
+      "main": [
+        [
+          {
+            "node": "Check Weekly Compliance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Data": {
+      "main": [
+        [
+          {
+            "node": "Filter After 7 Days Ago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedPerExecution": 90,
+    "errorWorkflow": "1ZnIFugZb5uzLLtC"
+  },
+  "versionId": "5381143e-e730-4936-96e7-367a50e5e6d8",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "H6dahXPyaiXPma5t",
+  "tags": []
+}
