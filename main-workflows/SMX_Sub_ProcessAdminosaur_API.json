@@ -1,0 +1,157 @@
+{
+  "name": "SMX_Sub_ProcessAdminosaur_API",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ProcessAdminosaur (API)\nReplaces Playwright scraping with direct Adminosaur REST API calls.\nRequires ADMINOSAUR_API_KEY set in n8n credentials.\nReturns the same output shape as the legacy Playwright sub-workflow\nso no changes are needed in CheckinMonitor.",
+        "height": 220,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-480, -160],
+      "typeVersion": 1,
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-480, 160],
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "name": "When Called by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.ADMINOSAUR_BASE_URL }}/api/v1/services/today/checkins",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "adminosaur-api-key",
+          "name": "Adminosaur API Key"
+        }
+      },
+      "position": [-240, 160],
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "name": "GET Today's Check-ins"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise Adminosaur API response into the same shape\n// that downstream workflows (CheckinNotification, reports) expect.\nconst raw = $input.first().json;\nconst rooms = [];\n\nfor (const room of (raw.rooms || [])) {\n  const volunteers = (room.attendees || []).map(a => ({\n    name: a.fullName,\n    role: a.role || 'Volunteer',\n    gradeStatus: a.safeMinistryCertStatus,  // 'valid', 'expired', 'missing'\n    gradeExpiry: a.safeMinistryCertExpiry || null,\n    checkinTime: a.checkedInAt,\n    checkinId: a.id\n  }));\n\n  rooms.push({\n    roomId: room.id,\n    roomName: room.name,\n    serviceId: raw.serviceId,\n    serviceDate: raw.serviceDate,\n    volunteers,\n    hasComplianceIssue: volunteers.some(\n      v => v.gradeStatus === 'expired' || v.gradeStatus === 'missing'\n    )\n  });\n}\n\nreturn rooms.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 160],
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "name": "Normalise Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "filter-compliance-issues",
+              "leftValue": "={{ $json.hasComplianceIssue }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [240, 160],
+      "id": "a1b2c3d4-0001-0001-0001-000000000005",
+      "name": "Rooms with Issues"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "GET Today's Check-ins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Today's Check-ins": {
+      "main": [
+        [
+          {
+            "node": "Normalise Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise Response": {
+      "main": [
+        [
+          {
+            "node": "Rooms with Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b2c3d4e5-0002-0002-0002-000000000001",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "SMXSubProcessAdminosaur_API",
+  "tags": [
+    {
+      "name": "smx",
+      "createdAt": "2026-06-16T00:00:00.000Z",
+      "updatedAt": "2026-06-16T00:00:00.000Z",
+      "id": "smx-tag"
+    }
+  ]
+}

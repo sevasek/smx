@@ -40,19 +40,19 @@ Each main workflow delegates to sub-workflows for data processing, report genera
 
 ## Tech Stack
 - **Automation**: n8n (main + sub-workflows)
-- **Scraping**: Playwright (headless browser for Adminosaur check-in data)
+- **Check-in data**: Adminosaur REST API (direct sync via `SMX_Sub_ProcessAdminosaur_API`)
+- **Integrations**: Elvanto ChMS, ClickSend SMS, SMTP
 - **Hosting**: VPS (Ubuntu 24.04)
 - **Containerisation**: Docker + Docker Compose + Traefik
-- **Integrations**: Elvanto ChMS, Adminosaur, ClickSend SMS, SMTP
 
 ## What's in This Repo
 
 | Path | Contents |
 |---|---|
-| `main-workflows/` | Five exported n8n main workflow JSON files — importable directly into n8n |
+| `main-workflows/` | Six exported n8n workflow JSON files — five main workflows plus the new `SMX_Sub_ProcessAdminosaur_API` sub-workflow template |
 | `docs/screenshots/` | Example compliance reports and workflow screenshots |
 
-> Sub-workflows, Docker Compose config, environment variables, and Playwright scraper scripts are not included for security and IP reasons. Interested in deploying SMX at your church? Contact me — I can provide the complete package and adaptation support.
+> Sub-workflows, Docker Compose config, and environment variables are not included for security and IP reasons. Interested in deploying SMX at your church? Contact me — I can provide the complete package and adaptation support.
 
 ## Screenshots
 <div align="center">
@@ -84,7 +84,7 @@ Full user and maintainer guides are included with the complete package (room map
 
 ## 🚀 Roadmap & Future Releases
 
-- **Adminosaur-native check-in sync** — replace Playwright scraping with a direct Adminosaur API or webhook integration to reduce fragility and cut check-in latency to under a minute.
+- ✅ **Adminosaur-native check-in sync** — replaced Playwright scraping with a direct Adminosaur REST API integration (`SMX_Sub_ProcessAdminosaur_API`), eliminating the headless browser and reducing check-in latency to under a minute.
 - **Expiry forecasting & proactive alerts** — automatically identify volunteers whose Safe Ministry certifications are due to expire within 30/60/90 days and trigger a reminder sequence before they lapse.
 - **Multi-church support** — extend the system to manage compliance across a network of parish churches from a single n8n instance, with per-church dashboards and isolated alerting configurations.
 - **AI compliance insights** — weekly natural-language summary of compliance trends, flagging rooms or teams with recurring issues and suggesting targeted interventions.
