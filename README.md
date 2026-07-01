@@ -28,6 +28,7 @@ SMX runs five main n8n workflows in orchestration:
 | `MonthlyReportA` | Monthly all-clear or issues overview, plus missing Safe Ministry grade follow-up list | Schedule |
 | `MonthlyReportB` | Bi-monthly compliance overview for extended tracking windows | Schedule |
 | `Switchboard` | Handles inbound SMS commands — `roll` sends a room roll-call, `evac` broadcasts a full evacuation roll | Webhook |
+| `ExpiryForecast` | Weekly scan for volunteers with certs expiring within 30/60/90 days; emails tiered admin report and SMS-reminds 30-day cases | Schedule |
 
 Each main workflow delegates to sub-workflows for data processing, report generation, and notification dispatch — keeping logic modular and independently testable.
 
@@ -49,7 +50,7 @@ Each main workflow delegates to sub-workflows for data processing, report genera
 
 | Path | Contents |
 |---|---|
-| `main-workflows/` | Six exported n8n workflow JSON files — five main workflows plus the new `SMX_Sub_ProcessAdminosaur_API` sub-workflow template |
+| `main-workflows/` | Seven exported n8n workflow JSON files — five main workflows, `SMX_Sub_ProcessAdminosaur_API` sub-workflow, and the new `SMX_Main_ExpiryForecast` expiry-alert workflow |
 | `docs/screenshots/` | Example compliance reports and workflow screenshots |
 
 > Sub-workflows, Docker Compose config, and environment variables are not included for security and IP reasons. Interested in deploying SMX at your church? Contact me — I can provide the complete package and adaptation support.
@@ -85,7 +86,7 @@ Full user and maintainer guides are included with the complete package (room map
 ## 🚀 Roadmap & Future Releases
 
 - ✅ **Adminosaur-native check-in sync** — replaced Playwright scraping with a direct Adminosaur REST API integration (`SMX_Sub_ProcessAdminosaur_API`), eliminating the headless browser and reducing check-in latency to under a minute.
-- **Expiry forecasting & proactive alerts** — automatically identify volunteers whose Safe Ministry certifications are due to expire within 30/60/90 days and trigger a reminder sequence before they lapse.
+- ✅ **Expiry forecasting & proactive alerts** — `SMX_Main_ExpiryForecast` runs weekly to identify volunteers whose Safe Ministry certifications expire within 30/60/90 days, emails a tiered admin report, and sends individual SMS reminders (via ClickSend) to anyone in the 30-day window.
 - **Multi-church support** — extend the system to manage compliance across a network of parish churches from a single n8n instance, with per-church dashboards and isolated alerting configurations.
 - **AI compliance insights** — weekly natural-language summary of compliance trends, flagging rooms or teams with recurring issues and suggesting targeted interventions.
 
