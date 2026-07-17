@@ -84,10 +84,13 @@ Full user and maintainer guides are included with the complete package (room map
 
 ## 🚀 Roadmap & Future Releases
 
-- **Adminosaur-native check-in sync** — replace Playwright scraping with a direct Adminosaur API or webhook integration to reduce fragility and cut check-in latency to under a minute.
-- **Expiry forecasting & proactive alerts** — automatically identify volunteers whose Safe Ministry certifications are due to expire within 30/60/90 days and trigger a reminder sequence before they lapse.
-- **Multi-church support** — extend the system to manage compliance across a network of parish churches from a single n8n instance, with per-church dashboards and isolated alerting configurations.
-- **AI compliance insights** — weekly natural-language summary of compliance trends, flagging rooms or teams with recurring issues and suggesting targeted interventions.
+| Priority | Feature | Why It Matters | Implementation Sketch | Effort |
+|---|---|---|---|---|
+| High | **Expiry forecasting & proactive alerts** | Dedicated competitors like Safe Ministry Check already ship automated WWCC/Blue Card expiry tracking with reminder sequences — this is table stakes for the category, not a differentiator to skip. Lapsed certifications are the compliance failure mode with the highest real-world cost. | New sub-workflow queries Elvanto/Adminosaur volunteer records on a daily schedule, diffs certification expiry dates against 30/60/90-day thresholds, and routes to the existing SMS/email notification nodes already used by `WeeklyReport`. | Medium |
+| High | **Adminosaur-native check-in sync** | The current Playwright scraper is the most fragile link in the system — a DOM change on Adminosaur's end silently breaks `CheckinMonitor`. Reducing polling latency from 5 minutes to near-real-time also tightens the safety-alert loop. | Replace the scraper node with a direct Adminosaur API/webhook call if one exists (worth a support inquiry); fall back to a more resilient scrape strategy (structured selectors + health-check alert on scrape failure) if no API is available. | Medium–High |
+| Medium | **Multi-church support** | Several dioceses run near-identical Safe Ministry processes; a single-tenant-per-instance design caps SMX's reach to one parish. Multi-tenancy is the difference between a personal tool and something offered to other churches. | Parameterise the workflows by church/org ID, move per-church config (room mappings, contact lists) into a lookup table or lightweight DB, and add a per-church dashboard view to the reporting workflows. | High |
+
+**Deprioritised for now:** AI-generated natural-language compliance summaries — interesting, but low leverage until the above reliability and coverage gaps are closed.
 
 ## Contact
 **Paul** — [@sevasek](https://x.com/sevasek)
