@@ -28,6 +28,7 @@ SMX runs five main n8n workflows in orchestration:
 | `MonthlyReportA` | Monthly all-clear or issues overview, plus missing Safe Ministry grade follow-up list | Schedule |
 | `MonthlyReportB` | Bi-monthly compliance overview for extended tracking windows | Schedule |
 | `Switchboard` | Handles inbound SMS commands — `roll` sends a room roll-call, `evac` broadcasts a full evacuation roll | Webhook |
+| `ExpiryForecast` | Weekly scan for volunteers with certs expiring within 30/60/90 days; emails tiered admin report and SMS-reminds 30-day cases | Schedule |
 
 Each main workflow delegates to sub-workflows for data processing, report generation, and notification dispatch — keeping logic modular and independently testable.
 
@@ -40,19 +41,19 @@ Each main workflow delegates to sub-workflows for data processing, report genera
 
 ## Tech Stack
 - **Automation**: n8n (main + sub-workflows)
-- **Scraping**: Playwright (headless browser for Adminosaur check-in data)
+- **Check-in data**: Adminosaur REST API (direct sync via `SMX_Sub_ProcessAdminosaur_API`)
+- **Integrations**: Elvanto ChMS, ClickSend SMS, SMTP
 - **Hosting**: VPS (Ubuntu 24.04)
 - **Containerisation**: Docker + Docker Compose + Traefik
-- **Integrations**: Elvanto ChMS, Adminosaur, ClickSend SMS, SMTP
 
 ## What's in This Repo
 
 | Path | Contents |
 |---|---|
-| `main-workflows/` | Five exported n8n main workflow JSON files — importable directly into n8n |
+| `main-workflows/` | Seven exported n8n workflow JSON files — five main workflows, `SMX_Sub_ProcessAdminosaur_API` sub-workflow, and the new `SMX_Main_ExpiryForecast` expiry-alert workflow |
 | `docs/screenshots/` | Example compliance reports and workflow screenshots |
 
-> Sub-workflows, Docker Compose config, environment variables, and Playwright scraper scripts are not included for security and IP reasons. Interested in deploying SMX at your church? Contact me — I can provide the complete package and adaptation support.
+> Sub-workflows, Docker Compose config, and environment variables are not included for security and IP reasons. Interested in deploying SMX at your church? Contact me — I can provide the complete package and adaptation support.
 
 ## Screenshots
 <div align="center">
@@ -84,13 +85,15 @@ Full user and maintainer guides are included with the complete package (room map
 
 ## 🚀 Roadmap & Future Releases
 
+**Shipped:**
+- ✅ **Adminosaur-native check-in sync** — replaced Playwright scraping with a direct Adminosaur REST API integration (`SMX_Sub_ProcessAdminosaur_API`), eliminating the headless browser and reducing check-in latency to under a minute.
+- ✅ **Expiry forecasting & proactive alerts** — `SMX_Main_ExpiryForecast` runs weekly to identify volunteers whose Safe Ministry certifications expire within 30/60/90 days, emails a tiered admin report, and sends individual SMS reminders (via ClickSend) to anyone in the 30-day window.
+
 | Priority | Feature | Why It Matters | Implementation Sketch | Effort |
 |---|---|---|---|---|
-| High | **Expiry forecasting & proactive alerts** | Dedicated competitors like Safe Ministry Check already ship automated WWCC/Blue Card expiry tracking with reminder sequences — this is table stakes for the category, not a differentiator to skip. Lapsed certifications are the compliance failure mode with the highest real-world cost. | New sub-workflow queries Elvanto/Adminosaur volunteer records on a daily schedule, diffs certification expiry dates against 30/60/90-day thresholds, and routes to the existing SMS/email notification nodes already used by `WeeklyReport`. | Medium |
-| High | **Adminosaur-native check-in sync** | The current Playwright scraper is the most fragile link in the system — a DOM change on Adminosaur's end silently breaks `CheckinMonitor`. Reducing polling latency from 5 minutes to near-real-time also tightens the safety-alert loop. | Replace the scraper node with a direct Adminosaur API/webhook call if one exists (worth a support inquiry); fall back to a more resilient scrape strategy (structured selectors + health-check alert on scrape failure) if no API is available. | Medium–High |
 | Medium | **Multi-church support** | Several dioceses run near-identical Safe Ministry processes; a single-tenant-per-instance design caps SMX's reach to one parish. Multi-tenancy is the difference between a personal tool and something offered to other churches. | Parameterise the workflows by church/org ID, move per-church config (room mappings, contact lists) into a lookup table or lightweight DB, and add a per-church dashboard view to the reporting workflows. | High |
 
-**Deprioritised for now:** AI-generated natural-language compliance summaries — interesting, but low leverage until the above reliability and coverage gaps are closed.
+**Deprioritised for now:** AI-generated natural-language compliance summaries — interesting, but low leverage until the above coverage gap is closed.
 
 ## Contact
 **Paul** — [@sevasek](https://x.com/sevasek)
