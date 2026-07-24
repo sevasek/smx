@@ -1,0 +1,321 @@
+{
+  "name": "SMX_Main_ExpiryForecast",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Expiry Forecast & Proactive Alerts\n\nRuns weekly (Monday 09:00) to identify volunteers whose Safe Ministry\ncertifications are due to expire within 30, 60, or 90 days.\n\n**Flow:**\n1. Fetch all volunteers from Adminosaur API\n2. Compute days until cert expiry for each person\n3. Bucket into three urgency tiers (≤30, 31–60, 61–90 days)\n4. If any upcoming expiries exist, email a consolidated report to the admin\n5. Send individual SMS reminders to the volunteer (via ClickSend) for\n   the 30-day tier only — closer windows warrant personal contact\n\n**Env vars required:**\n- `ADMINOSAUR_BASE_URL`\n- `ADMIN_EMAIL`\n- `CLICKSEND_USERNAME` / `CLICKSEND_API_KEY`\n- `SMS_FROM_NAME`",
+        "height": 360,
+        "width": 700,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-560, 160],
+      "id": "f992a30a-e86f-4c78-aa8b-882b65abad27",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [-560, 560],
+      "id": "a04f1d15-59ba-4878-9ff7-31dabe7aa5a7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.ADMINOSAUR_BASE_URL }}/api/v1/people",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "role",
+              "value": "volunteer"
+            },
+            {
+              "name": "page_size",
+              "value": "500"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-320, 560],
+      "id": "4c9ebbfa-80d3-46c7-978d-85ceac645a8a",
+      "name": "GET Volunteers"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bucket volunteers by days until their Safe Ministry cert expires.\n// Input: raw Adminosaur /api/v1/people response.\n// Output: one item with three arrays — expiring30, expiring60, expiring90.\n\nconst raw = $input.first().json;\nconst people = raw.data || raw.people || raw.results || [];\n\nconst today = new Date();\ntoday.setHours(0, 0, 0, 0);\n\nconst MS_PER_DAY = 1000 * 60 * 60 * 24;\n\nconst expiring30 = [];\nconst expiring60 = [];\nconst expiring90 = [];\n\nfor (const person of people) {\n  const expiryStr = person.safeMinistryCertExpiry\n    || person.safe_ministry_cert_expiry\n    || person.certExpiry\n    || null;\n\n  if (!expiryStr) continue;\n\n  const expiry = new Date(expiryStr);\n  if (isNaN(expiry.getTime())) continue;\n\n  const daysUntil = Math.ceil((expiry - today) / MS_PER_DAY);\n\n  // Skip already-expired or no-expiry-within-90-days\n  if (daysUntil <= 0 || daysUntil > 90) continue;\n\n  const entry = {\n    name:       person.fullName || person.full_name || person.name || 'Unknown',\n    email:      person.email || null,\n    phone:      person.mobile || person.phone || null,\n    expiryDate: expiryStr,\n    daysUntil\n  };\n\n  if (daysUntil <= 30) {\n    expiring30.push(entry);\n  } else if (daysUntil <= 60) {\n    expiring60.push(entry);\n  } else {\n    expiring90.push(entry);\n  }\n}\n\n// Sort each bucket soonest-first\nconst byDays = (a, b) => a.daysUntil - b.daysUntil;\nexpiring30.sort(byDays);\nexpiring60.sort(byDays);\nexpiring90.sort(byDays);\n\nconst totalUpcoming = expiring30.length + expiring60.length + expiring90.length;\n\nreturn [{\n  json: {\n    totalUpcoming,\n    expiring30,\n    expiring60,\n    expiring90\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 560],
+      "id": "fe4ee556-4406-4d0e-b7d1-a32f19199570",
+      "name": "Bucket by Expiry Window"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-upcoming-expiries",
+              "leftValue": "={{ $json.totalUpcoming }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [160, 560],
+      "id": "8200b1fb-34b6-4195-80a8-100865a10853",
+      "name": "Any Upcoming Expiries?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the HTML admin report email for all three expiry buckets.\nconst { expiring30, expiring60, expiring90, totalUpcoming } = $input.first().json;\n\nconst today = new Date().toLocaleDateString('en-AU', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nfunction tableRows(volunteers) {\n  return volunteers.map(v =>\n    `<tr>\n      <td style=\"padding:6px 12px;\">${v.name}</td>\n      <td style=\"padding:6px 12px;\">${v.expiryDate}</td>\n      <td style=\"padding:6px 12px;font-weight:bold;\">${v.daysUntil} days</td>\n    </tr>`\n  ).join('');\n}\n\nfunction section(title, colour, volunteers) {\n  if (!volunteers.length) return '';\n  return `\n    <h3 style=\"color:${colour};margin-top:24px;\">${title} (${volunteers.length})</h3>\n    <table style=\"border-collapse:collapse;width:100%;font-family:sans-serif;font-size:14px;\">\n      <thead>\n        <tr style=\"background:${colour};color:#fff;\">\n          <th style=\"padding:8px 12px;text-align:left;\">Volunteer</th>\n          <th style=\"padding:8px 12px;text-align:left;\">Expiry Date</th>\n          <th style=\"padding:8px 12px;text-align:left;\">Days Remaining</th>\n        </tr>\n      </thead>\n      <tbody>${tableRows(volunteers)}</tbody>\n    </table>`;\n}\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<body style=\"font-family:sans-serif;color:#222;max-width:640px;margin:0 auto;padding:20px;\">\n  <h2 style=\"color:#b22222;\">⚠️ Safe Ministry Certification — Expiry Forecast</h2>\n  <p>Report generated: <strong>${today}</strong></p>\n  <p><strong>${totalUpcoming} volunteer(s)</strong> have Safe Ministry certifications expiring within the next 90 days.</p>\n  ${section('🔴 Expiring within 30 days — ACTION REQUIRED', '#b22222', expiring30)}\n  ${section('🟠 Expiring in 31–60 days — Follow up soon', '#cc6600', expiring60)}\n  ${section('🟡 Expiring in 61–90 days — Monitor', '#997700', expiring90)}\n  <hr style=\"margin-top:32px;\"/>\n  <p style=\"font-size:12px;color:#888;\">Generated by Safe Ministry Connections (SMX). Do not reply to this email.</p>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    subject: `SMX Expiry Forecast — ${totalUpcoming} cert(s) expiring within 90 days`,\n    htmlBody: html,\n    expiring30\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 440],
+      "id": "965cc201-5d5b-4d95-ab86-ba9f6a7ffeb1",
+      "name": "Build Report Email"
+    },
+    {
+      "parameters": {
+        "fromEmail": "smx@{{ $env.SMTP_DOMAIN }}",
+        "toEmail": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [640, 440],
+      "id": "fbff7ed5-159e-42d3-9c0d-4908c9f252b6",
+      "name": "Email Admin Report"
+    },
+    {
+      "parameters": {
+        "jsCode": "// For the 30-day bucket, build individual SMS reminders for each volunteer\n// who has a mobile number on record.\n// Output: one item per volunteer to be sent an SMS.\n\nconst { expiring30 } = $input.first().json;\n\nconst withPhone = expiring30.filter(v => v.phone);\n\nreturn withPhone.map(v => ({\n  json: {\n    phone: v.phone.replace(/\\s+/g, ''),\n    name: v.name,\n    expiryDate: v.expiryDate,\n    daysUntil: v.daysUntil,\n    message: `Hi ${v.name.split(' ')[0]}, your Safe Ministry cert expires on ${v.expiryDate} (${v.daysUntil} days). Please renew ASAP to continue serving. Questions? Contact the Safe Ministry Co-ordinator.`\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 620],
+      "id": "98d65c91-c743-49ef-a54d-1c5227c35aa1",
+      "name": "Build 30-Day SMS Reminders"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-phone",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [880, 620],
+      "id": "b6b559cf-afd8-49c0-81da-9df787a7a8a7",
+      "name": "Has Phone Number?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.clicksend.com/v3/sms/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"messages\": [\n    {\n      \"to\": \"{{ $json.phone }}\",\n      \"body\": \"{{ $json.message }}\",\n      \"from\": \"{{ $env.SMS_FROM_NAME }}\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 560],
+      "id": "45c6baa6-afa0-4b5c-ba79-6fc34c803d9c",
+      "name": "Send SMS via ClickSend"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "GET Volunteers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Volunteers": {
+      "main": [
+        [
+          {
+            "node": "Bucket by Expiry Window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bucket by Expiry Window": {
+      "main": [
+        [
+          {
+            "node": "Any Upcoming Expiries?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Upcoming Expiries?": {
+      "main": [
+        [
+          {
+            "node": "Build Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Build Report Email": {
+      "main": [
+        [
+          {
+            "node": "Email Admin Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build 30-Day SMS Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build 30-Day SMS Reminders": {
+      "main": [
+        [
+          {
+            "node": "Has Phone Number?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Phone Number?": {
+      "main": [
+        [
+          {
+            "node": "Send SMS via ClickSend",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "1ZnIFugZb5uzLLtC",
+    "timeSavedPerExecution": 20
+  },
+  "versionId": "d6574001-c25f-426e-bfc8-c7e7329f07f7",
+  "meta": {
+    "instanceId": "352d191c67492618b5452d69b70d0a3b9270763b53a073e705f68d6101987b53"
+  },
+  "id": "877f11e2-fffb-40ef-b8b8-6cb584805568",
+  "tags": []
+}
